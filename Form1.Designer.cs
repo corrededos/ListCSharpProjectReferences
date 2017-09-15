@@ -59,7 +59,6 @@
             this.txtSearchFolderPath.Name = "txtSearchFolderPath";
             this.txtSearchFolderPath.Size = new System.Drawing.Size(763, 20);
             this.txtSearchFolderPath.TabIndex = 2;
-            this.txtSearchFolderPath.Text = "C:\\tfs\\NCSCross\\Release\\5.8\\Hotfix";
             // 
             // splitContainer1
             // 

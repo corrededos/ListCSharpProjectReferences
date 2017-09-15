@@ -22,14 +22,26 @@ namespace WindowsFormsApplication3
 
         private void button1_Click(object sender, EventArgs e)
         {
-            readAllFiles();
+            try
+            {
+                readAllFiles(txtSearchFolderPath.Text);
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message);
+            }
+            
         }
 
-        private void readAllFiles() {
+        private void readAllFiles(string folderPath) {
 
             string output = "";
             string filePaths = "";
-            string[] files = Directory.GetFiles(txtSearchFolderPath.Text, "*.*csproj", SearchOption.AllDirectories);
+
+            if (!Directory.Exists(folderPath)) throw new System.IO.DirectoryNotFoundException();
+
+            string[] files = Directory.GetFiles(folderPath, "*.*csproj", SearchOption.AllDirectories);
 
             //GET REFERENCES
             foreach (var filePath in files)
@@ -120,7 +132,9 @@ namespace WindowsFormsApplication3
                                               };
             
             
-            
+            //TODO: All child elements for different versions of ReferenceType are not handled, this is mostly for COMReference that has unhandled child elements such as version etc.
+
+
             foreach (XElement referenceChild in reference.Elements())
             {
                 switch (referenceChild.Name.LocalName)
