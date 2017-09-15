@@ -45,47 +45,43 @@ namespace WindowsFormsApplication3
         }
         private string GetReferencesFromFile(string filePath) {
 
-                 
+
+            //Get References
+            //Get Com References
+            //Dont get project references
+
+
             string output = "";
             XDocument xml = XDocument.Load(filePath);
 
-            //1. Iterate all child elements of <Project> to find <ItemGroup>
-            foreach (XElement projectChildElement in xml.Elements().First().Elements())
+
+
+            //----------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
+            XElement xEl = XElement.Load(filePath);
+            string testOut = "";
+
+            IEnumerable<XElement> elements = xEl.Descendants().Where(el => el.Name.LocalName =="Reference");
+            Reference refObject = new Reference();
+            foreach (XElement element in elements)
             {
-                //2. If ItemGroup then look for entrys of <Reference> element
-                if (projectChildElement.Name.LocalName == "ItemGroup") {
-                    if (!projectChildElement.HasElements) break;
-                    
-                    
-                    //=&= TODO: Finns riks för logiskt fel här, Reference behöver ej komma först eller vara default, det kan ligga andra element före och då missar man reference element ur en projektfil.
-                    if (projectChildElement.Elements().FirstOrDefault().Name.LocalName == "Reference")
-                    {
-
-
-                        //3. When <Reference> child elements are found in <ItemGroup>, iterate and build up output.
-                        IEnumerable<XElement>itemGroup = projectChildElement.Elements();
-                        Reference refObj = new Reference();
-                        
-                        foreach (XElement referenceElement in itemGroup)
-                        {
-                            refObj = LoadReferenceObject(referenceElement, filePath);
-                            output += @"<Reference " + refObj.ReferenceInformation 
-                                    + @" SpecificVersion=""" + refObj.SpecificVersion 
-                                    + @""" HintPath=""" + refObj.HintPath 
-                                    + @""" Private=""" + refObj.Private 
-                                    + @""" ExtDep=""" + refObj.ExternalDependency 
-                                    + @""" InOutputFolder=""" + refObj.InOutputFolder 
-                                    + @""" InPkgFolder=""" + refObj.InPackagesFolder 
-                                    + @""" InProject=""" + refObj.ProjectPath 
-                                    + @"""></Reference>" 
-                                    + System.Environment.NewLine;
-
-                        }
-                        
-                    }
-                }
+                refObject = LoadReferenceObject(element, filePath);
+                testOut += @"<Reference " + refObject.ReferenceInformation
+                        + @" SpecificVersion=""" + refObject.SpecificVersion
+                        + @""" HintPath=""" + refObject.HintPath
+                        + @""" Private=""" + refObject.Private
+                        + @""" ExtDep=""" + refObject.ExternalDependency
+                        + @""" InOutputFolder=""" + refObject.InOutputFolder
+                        + @""" InPkgFolder=""" + refObject.InPackagesFolder
+                        + @""" InProject=""" + refObject.ProjectPath
+                        + @"""></Reference>"
+                        + System.Environment.NewLine;
             }
-            return output;
+            return testOut;
+            //----------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
                         
         }
 
