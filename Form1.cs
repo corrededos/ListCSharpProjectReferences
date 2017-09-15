@@ -13,6 +13,7 @@ using System.Xml.Linq;
 
 namespace WindowsFormsApplication3
 {
+
     public partial class Form1 : Form
     {
         public Form1()
@@ -73,10 +74,10 @@ namespace WindowsFormsApplication3
             XElement xEl = XElement.Load(filePath);
 
             //Reference
-            output = GetReferencesOfType(filePath,xEl, Reference.ReferenceType.Reference);
+            output = GetReferencesOfType(filePath,xEl, ReferenceType.Reference);
 
             //COMReference
-            output += GetReferencesOfType(filePath, xEl, Reference.ReferenceType.COMReference);
+            output += GetReferencesOfType(filePath, xEl, ReferenceType.COMReference);
 
             return output;
         }
@@ -88,7 +89,7 @@ namespace WindowsFormsApplication3
         /// <param name="xEl">XElement that is loaded from .csproj file</param>
         /// <param name="referenceType">Reference type filter to search for</param>
         /// <returns></returns>
-        private string GetReferencesOfType(string filePath, XElement xEl, Reference.ReferenceType referenceType)
+        private string GetReferencesOfType(string filePath, XElement xEl, ReferenceType referenceType)
         {
             string output = "";
             IEnumerable<XElement> elements;
@@ -123,11 +124,11 @@ namespace WindowsFormsApplication3
         /// <param name="filePath">Used for tracking purposes</param>
         /// <param name="referenceType">Used to filter by specific reference type</param>
         /// <returns></returns>
-        private Reference LoadReferenceObject(XElement reference, string filePath, Reference.ReferenceType referenceType)
+        private Reference LoadReferenceObject(XElement reference, string filePath, ReferenceType referenceType)
         {
             //Assign value to InfoObject
             Reference refObj = new Reference {ProjectPath = filePath,
-                                              RefType = referenceType,
+                                              ReferenceType = referenceType,
                                               ReferenceInformation = reference.Attribute("Include").ToString()
                                               };
             
@@ -191,13 +192,7 @@ namespace WindowsFormsApplication3
     {
 
 
-        public enum ReferenceType
-        {
-            Reference = 0,
-            COMReference = 1,
-            ProjectReference = 2
 
-        }
         public string ProjectPath { get; set; }
         public string SpecificVersion { get; set; }
         public string HintPath { get; set; }
@@ -207,7 +202,15 @@ namespace WindowsFormsApplication3
         public string ExternalDependency { get; set; }
         public string InOutputFolder { get; set; }
         public string InPackagesFolder { get; set; }
-        public ReferenceType RefType { get; set; }
+        public ReferenceType ReferenceType { get; set; }
+
+    }
+
+    public enum ReferenceType
+    {
+        Reference = 0,
+        COMReference = 1,
+        ProjectReference = 2
 
     }
 }
