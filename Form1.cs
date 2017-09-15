@@ -43,8 +43,14 @@ namespace WindowsFormsApplication3
             txtFilesSearched.Text = "Searched in follwing files:" + System.Environment.NewLine + filePaths;
 
         }
-        private string GetReferencesFromFile(string filePath) {
 
+        /// <summary>
+        ///     Returns XML formatted string with all References and COMReferences for all .csproj files for a given folder path.
+        /// </summary>
+        /// <param name="filePath">Folder to search</param>
+        /// <returns></returns>
+        private string GetReferencesFromFile(string filePath)
+        {
 
             //Get References
             //Get Com References
@@ -52,22 +58,38 @@ namespace WindowsFormsApplication3
 
 
             string output = "";
-            XDocument xml = XDocument.Load(filePath);
-
-
-
-            //----------------------------------------------------------------------------
-            //----------------------------------------------------------------------------
-            //----------------------------------------------------------------------------
             XElement xEl = XElement.Load(filePath);
-            string testOut = "";
 
-            IEnumerable<XElement> elements = xEl.Descendants().Where(el => el.Name.LocalName =="Reference");
-            Reference refObject = new Reference();
+            //Reference
+            output = GetReferencesOfType(filePath,xEl, Reference.ReferenceType.Reference);
+
+            //COMReference
+            output += GetReferencesOfType(filePath, xEl, Reference.ReferenceType.COMReference);
+
+            return output;
+        }
+
+        /// <summary>
+        /// Returns XML formatted string by reference type for all .csproj files for a given folder path.
+        /// </summary>
+        /// <param name="filePath">Folder to search</param>
+        /// <param name="xEl">XElement that is loaded from .csproj file</param>
+        /// <param name="referenceType">Reference type filter to search for</param>
+        /// <returns></returns>
+        private string GetReferencesOfType(string filePath, XElement xEl, Reference.ReferenceType referenceType)
+        {
+            string output = "";
+            IEnumerable<XElement> elements;
+            Reference refObject;
+
+            //Get elements by ReferenceType
+            elements = xEl.Descendants().Where(el => el.Name.LocalName == referenceType.ToString());
+            refObject = new Reference();
+
             foreach (XElement element in elements)
             {
-                refObject = LoadReferenceObject(element, filePath);
-                testOut += @"<Reference " + refObject.ReferenceInformation
+                refObject = LoadReferenceObject(element, filePath, referenceType);
+                output += @"<Reference " + refObject.ReferenceInformation
                         + @" SpecificVersion=""" + refObject.SpecificVersion
                         + @""" HintPath=""" + refObject.HintPath
                         + @""" Private=""" + refObject.Private
@@ -75,22 +97,30 @@ namespace WindowsFormsApplication3
                         + @""" InOutputFolder=""" + refObject.InOutputFolder
                         + @""" InPkgFolder=""" + refObject.InPackagesFolder
                         + @""" InProject=""" + refObject.ProjectPath
+                        + @""" ReferenceType=""" + referenceType.ToString()
                         + @"""></Reference>"
                         + System.Environment.NewLine;
             }
-            return testOut;
-            //----------------------------------------------------------------------------
-            //----------------------------------------------------------------------------
-            //----------------------------------------------------------------------------
-                        
+            return output;
         }
 
-        private Reference LoadReferenceObject(XElement reference, string filePath)
+        /// <summary>
+        /// Loads Reference Entity object
+        /// </summary>
+        /// <param name="reference">The reference element from the .csproj file, used to iterate its childs for additional information.</param>
+        /// <param name="filePath">Used for tracking purposes</param>
+        /// <param name="referenceType">Used to filter by specific reference type</param>
+        /// <returns></returns>
+        private Reference LoadReferenceObject(XElement reference, string filePath, Reference.ReferenceType referenceType)
         {
             //Assign value to InfoObject
-            Reference refObj = new Reference();
-            refObj.ReferenceInformation = reference.Attribute("Include").ToString();
-            refObj.ProjectPath = filePath;
+            Reference refObj = new Reference {ProjectPath = filePath,
+                                              RefType = referenceType,
+                                              ReferenceInformation = reference.Attribute("Include").ToString()
+                                              };
+            
+            
+            
             foreach (XElement referenceChild in reference.Elements())
             {
                 switch (referenceChild.Name.LocalName)
@@ -139,20 +169,32 @@ namespace WindowsFormsApplication3
                 }
 
             }
+
             return refObj;
         }
     }
-}
-public class Reference{
+    public class Reference
+    {
 
-    public string ProjectPath { get; set; }
 
-    public string SpecificVersion { get; set; }
-    public string HintPath { get; set; }
-    public string Private { get; set; }
-    public string ReferenceInformation { get; set; }
-    public string AdditionalInformation { get; set; }
-    public string ExternalDependency { get; set; }
-    public string InOutputFolder { get; set; }
-    public string InPackagesFolder { get; set; }
+        public enum ReferenceType
+        {
+            Reference = 0,
+            COMReference = 1,
+            ProjectReference = 2
+
+        }
+        public string ProjectPath { get; set; }
+        public string SpecificVersion { get; set; }
+        public string HintPath { get; set; }
+        public string Private { get; set; }
+        public string ReferenceInformation { get; set; }
+        public string AdditionalInformation { get; set; }
+        public string ExternalDependency { get; set; }
+        public string InOutputFolder { get; set; }
+        public string InPackagesFolder { get; set; }
+        public ReferenceType RefType { get; set; }
+
+    }
 }
+
