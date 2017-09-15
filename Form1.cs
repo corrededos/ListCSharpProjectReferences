@@ -25,7 +25,7 @@ namespace WindowsFormsApplication3
         {
             try
             {
-                readAllFiles(txtSearchFolderPath.Text);
+                GetReferencesFromProjectFilesByFolder(txtSearchFolderPath.Text);
             }
             catch (Exception ex)
             {
@@ -35,23 +35,24 @@ namespace WindowsFormsApplication3
             
         }
 
-        private void readAllFiles(string folderPath) {
+        private void GetReferencesFromProjectFilesByFolder(string folderPath) {
 
             string output = "";
             string filePaths = "";
 
             if (!Directory.Exists(folderPath)) throw new System.IO.DirectoryNotFoundException();
 
+            //Get all .csproj files for given folder
             string[] files = Directory.GetFiles(folderPath, "*.*csproj", SearchOption.AllDirectories);
 
-            //GET REFERENCES
+            //Iterate each .csproj file, build up XML formatted reference string. 
             foreach (var filePath in files)
             {
                 filePaths += filePath + System.Environment.NewLine;
                 output += GetReferencesFromFile(filePath); 
             }
 
-            //OUTPUT
+            //Assign result to textboxes
             txtReferences.Text = "<References>" + System.Environment.NewLine + output + System.Environment.NewLine + "</References>";
             txtFilesSearched.Text = "Searched in follwing files:" + System.Environment.NewLine + filePaths;
 
@@ -74,22 +75,22 @@ namespace WindowsFormsApplication3
             XElement xEl = XElement.Load(filePath);
 
             //Reference
-            output = GetReferencesOfType(filePath,xEl, ReferenceType.Reference);
+            output = GetXMLReferenceFormattedStringByRefType(filePath,xEl, ReferenceType.Reference);
 
             //COMReference
-            output += GetReferencesOfType(filePath, xEl, ReferenceType.COMReference);
+            output += GetXMLReferenceFormattedStringByRefType(filePath, xEl, ReferenceType.COMReference);
 
             return output;
         }
 
         /// <summary>
-        /// Returns XML formatted string by reference type for all .csproj files for a given folder path.
+        /// Returns XML formatted string by reference type for all .csproj files for a given folder path and reference type
         /// </summary>
         /// <param name="filePath">Folder to search</param>
         /// <param name="xEl">XElement that is loaded from .csproj file</param>
         /// <param name="referenceType">Reference type filter to search for</param>
         /// <returns></returns>
-        private string GetReferencesOfType(string filePath, XElement xEl, ReferenceType referenceType)
+        private string GetXMLReferenceFormattedStringByRefType(string filePath, XElement xEl, ReferenceType referenceType)
         {
             string output = "";
             IEnumerable<XElement> elements;
@@ -101,7 +102,7 @@ namespace WindowsFormsApplication3
 
             foreach (XElement element in elements)
             {
-                refObject = LoadReferenceObject(element, filePath, referenceType);
+                refObject = LoadReferenceEntityObject(element, filePath, referenceType);
                 output += @"<Reference " + refObject.ReferenceInformation
                         + @" SpecificVersion=""" + refObject.SpecificVersion
                         + @""" HintPath=""" + refObject.HintPath
@@ -124,8 +125,10 @@ namespace WindowsFormsApplication3
         /// <param name="filePath">Used for tracking purposes</param>
         /// <param name="referenceType">Used to filter by specific reference type</param>
         /// <returns></returns>
-        private Reference LoadReferenceObject(XElement reference, string filePath, ReferenceType referenceType)
+        private Reference LoadReferenceEntityObject(XElement reference, string filePath, ReferenceType referenceType)
         {
+            //TODO: Improve code in general for this method
+
             //Assign value to InfoObject
             Reference refObj = new Reference {ProjectPath = filePath,
                                               ReferenceType = referenceType,
@@ -134,8 +137,6 @@ namespace WindowsFormsApplication3
             
             
             //TODO: All child elements for different versions of ReferenceType are not handled, this is mostly for COMReference that has unhandled child elements such as version etc.
-
-
             foreach (XElement referenceChild in reference.Elements())
             {
                 switch (referenceChild.Name.LocalName)
@@ -184,7 +185,6 @@ namespace WindowsFormsApplication3
                 }
 
             }
-
             return refObj;
         }
     }
